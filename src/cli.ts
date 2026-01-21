@@ -8,19 +8,35 @@
 import { Command } from "commander";
 import { readFile, writeFile } from "fs/promises";
 import { existsSync } from "fs";
-import { resolve } from "path";
+import { resolve, dirname, join } from "path";
+import { fileURLToPath } from "url";
 import inquirer from "inquirer";
+import chalk from "chalk";
 import { ModelTestingService } from "./testing-service.js";
 import { ReportGenerator } from "./report-generator.js";
 import { ModelService, type ModelInfo } from "./model-service.js";
 import type { TestSuiteConfig, OutputFormat, ReportOptions } from "./types.js";
 
+// Get package version dynamically
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const packageJsonPath = join(__dirname, "..", "package.json");
+const packageJson = JSON.parse(await readFile(packageJsonPath, "utf-8"));
+const VERSION = packageJson.version;
+
 const program = new Command();
 
 program
   .name("copilot-test")
-  .description("Copilot Model Risk Assessment Testing Framework")
-  .version("1.0.0");
+  .description(chalk.bold("GitHub Copilot Model Testing Framework") + "\n\n" +
+    "  Test and evaluate Copilot models for model risk management.\n" +
+    "  Supports multi-model testing, parallel execution, and rich reporting.\n\n" +
+    chalk.dim("  Examples:\n") +
+    chalk.dim("    $ copilot-test models                    # List available models\n") +
+    chalk.dim("    $ copilot-test run config.json           # Run test suite\n") +
+    chalk.dim("    $ copilot-test run config.json -m gpt-5  # Test specific model\n") +
+    chalk.dim("    $ copilot-test init                      # Create sample config"))
+  .version(VERSION, "-v, --version", "Show version number")
+  .addHelpText("after", `\n${chalk.dim("Documentation: https://github.com/copilot/model-testing#readme")}`);
 
 /**
  * Interactive model selection
@@ -83,25 +99,28 @@ program
     if (options.json) {
       console.log(JSON.stringify(models, null, 2));
     } else {
-      console.log("\n🤖 Available Copilot Models:\n");
+      console.log(chalk.bold("\n🤖 Available Copilot Models:\n"));
       
-      console.log("┌─────────────────────────┬────────────────────────────────────────────┬────────┐");
-      console.log("│ Model ID                │ Description                                │ Status │");
-      console.log("├─────────────────────────┼────────────────────────────────────────────┼────────┤");
+      console.log(chalk.dim("┌─────────────────────────┬────────────────────────────────────────────┬────────┐"));
+      console.log(chalk.dim("│") + chalk.bold(" Model ID                ") + chalk.dim("│") + chalk.bold(" Description                                ") + chalk.dim("│") + chalk.bold(" Status ") + chalk.dim("│"));
+      console.log(chalk.dim("├─────────────────────────┼────────────────────────────────────────────┼────────┤"));
       
       for (const model of models) {
-        const id = model.id.padEnd(23);
+        const id = chalk.cyan(model.id.padEnd(23));
         const desc = (model.description || model.name).substring(0, 42).padEnd(42);
-        const status = model.policy?.state === "enabled" ? "  ✓   " : 
-                       model.policy?.state === "disabled" ? "  ✗   " : "  -   ";
-        console.log(`│ ${id} │ ${desc} │${status}│`);
+        const status = model.policy?.state === "enabled" 
+          ? chalk.green("  ✓   ") 
+          : model.policy?.state === "disabled" 
+          ? chalk.red("  ✗   ") 
+          : chalk.dim("  -   ");
+        console.log(chalk.dim("│") + ` ${id} ` + chalk.dim("│") + ` ${desc} ` + chalk.dim("│") + status + chalk.dim("│"));
       }
       
-      console.log("└─────────────────────────┴────────────────────────────────────────────┴────────┘");
-      console.log(`\nTotal: ${models.length} models available`);
-      console.log("Status: ✓ = enabled, ✗ = disabled, - = unconfigured");
+      console.log(chalk.dim("└─────────────────────────┴────────────────────────────────────────────┴────────┘"));
+      console.log(`\n${chalk.bold("Total:")} ${chalk.cyan(models.length.toString())} models available`);
+      console.log(chalk.dim("Status: ") + chalk.green("✓") + chalk.dim(" enabled  ") + chalk.red("✗") + chalk.dim(" disabled  ") + chalk.dim("- unconfigured"));
       if (fromApi) {
-        console.log("\n✨ Fetched live from GitHub Copilot API");
+        console.log(chalk.green("\n✨ Fetched live from GitHub Copilot API"));
       }
     }
   });
@@ -249,14 +268,16 @@ program
         await reportGenerator.generate(result, reportOptions);
 
         // Print summary
-        console.log("\n📊 Test Summary:");
-        console.log(`   Total: ${result.summary.totalTests}`);
-        console.log(`   Passed: ${result.summary.passed} ✅`);
-        console.log(`   Failed: ${result.summary.failed} ❌`);
-        console.log(
-          `   Success Rate: ${Math.round((result.summary.passed / result.summary.totalTests) * 100)}%`
-        );
-        console.log(`   Duration: ${result.summary.totalDurationMs}ms`);
+        const successRate = Math.round((result.summary.passed / result.summary.totalTests) * 100);
+        const successColor = successRate >= 90 ? chalk.green : successRate >= 70 ? chalk.yellow : chalk.red;
+        
+        console.log(chalk.bold("\n📊 Test Summary:"));
+        console.log(`   ${chalk.dim("Total:")}    ${chalk.cyan(result.summary.totalTests.toString())}`);
+        console.log(`   ${chalk.dim("Passed:")}   ${chalk.green(result.summary.passed.toString())} ✅`);
+        console.log(`   ${chalk.dim("Failed:")}   ${result.summary.failed > 0 ? chalk.red(result.summary.failed.toString()) : result.summary.failed.toString()} ${result.summary.failed > 0 ? "❌" : ""}`);
+        console.log(`   ${chalk.dim("Rate:")}     ${successColor(successRate + "%")}`);
+        console.log(`   ${chalk.dim("Duration:")} ${chalk.cyan(result.summary.totalDurationMs + "ms")}`);
+        console.log(chalk.dim(`\n   Report: ${resolve(outputPath)}`));
       } finally {
         await testingService.cleanup();
       }
@@ -455,11 +476,178 @@ program
       fs.writeFile(outputPath, JSON.stringify(sampleConfig, null, 2))
     );
 
-    console.log(`\n✅ Sample configuration created: ${outputPath}`);
-    console.log(`\n   Models: ${sampleConfig.models.length}`);
-    console.log(`   Test cases: ${sampleConfig.testCases.length}`);
-    console.log(`\nRun tests with:`);
-    console.log(`   npx copilot-test run ${options.output} --responses --format html`);
+    console.log(chalk.green(`\n✅ Sample configuration created: ${outputPath}`));
+    console.log(`\n   ${chalk.dim("Models:")}     ${chalk.cyan(sampleConfig.models.length.toString())}`);
+    console.log(`   ${chalk.dim("Test cases:")} ${chalk.cyan(sampleConfig.testCases.length.toString())}`);
+    console.log(chalk.bold("\nRun tests with:"));
+    console.log(chalk.cyan(`   copilot-test run ${options.output} --responses --format html`));
+  });
+
+// Shell completion command
+program
+  .command("completion")
+  .description("Generate shell completion script")
+  .argument("[shell]", "Shell type (bash, zsh, fish)", "zsh")
+  .action(async (shell) => {
+    const bashCompletion = `
+# Bash completion for copilot-test
+_copilot_test_completions() {
+  local cur="\${COMP_WORDS[COMP_CWORD]}"
+  local prev="\${COMP_WORDS[COMP_CWORD-1]}"
+  
+  local commands="models run validate init completion"
+  local run_opts="-o --output -f --format -r --responses -t --timestamps --risk-analysis --timeout --retries --delay -m --models -i --interactive -a --all-models --parallel --repo --languages --clone --branch --keep-temp"
+  local formats="markdown html json csv"
+  
+  case "\${prev}" in
+    copilot-test|cpt)
+      COMPREPLY=( $(compgen -W "\${commands}" -- "\${cur}") )
+      return 0
+      ;;
+    run)
+      COMPREPLY=( $(compgen -f -X '!*.json' -- "\${cur}") )
+      return 0
+      ;;
+    -f|--format)
+      COMPREPLY=( $(compgen -W "\${formats}" -- "\${cur}") )
+      return 0
+      ;;
+    validate)
+      COMPREPLY=( $(compgen -f -X '!*.json' -- "\${cur}") )
+      return 0
+      ;;
+  esac
+  
+  case "\${COMP_WORDS[1]}" in
+    run)
+      COMPREPLY=( $(compgen -W "\${run_opts}" -- "\${cur}") )
+      return 0
+      ;;
+  esac
+}
+
+complete -F _copilot_test_completions copilot-test
+complete -F _copilot_test_completions cpt
+`;
+
+    const zshCompletion = `#compdef copilot-test cpt
+
+_copilot_test() {
+  local -a commands
+  commands=(
+    'models:List available Copilot models'
+    'run:Run a test suite from a configuration file'
+    'validate:Validate a test suite configuration file'
+    'init:Create a sample test suite configuration'
+    'completion:Generate shell completion script'
+  )
+
+  local -a run_options
+  run_options=(
+    '-o[Output file path]:path:_files'
+    '--output[Output file path]:path:_files'
+    '-f[Output format]:format:(markdown html json csv)'
+    '--format[Output format]:format:(markdown html json csv)'
+    '-r[Include full responses in report]'
+    '--responses[Include full responses in report]'
+    '-t[Include timestamps in report]'
+    '--timestamps[Include timestamps in report]'
+    '--risk-analysis[Include risk analysis in report]'
+    '--timeout[Timeout per test in milliseconds]:ms:'
+    '--retries[Number of retries on failure]:n:'
+    '--delay[Delay between tests in milliseconds]:ms:'
+    '-m[Comma-separated list of models]:models:'
+    '--models[Comma-separated list of models]:models:'
+    '-i[Interactively select models]'
+    '--interactive[Interactively select models]'
+    '-a[Test all available models]'
+    '--all-models[Test all available models]'
+    '--parallel[Run models in parallel]'
+    '--repo[Path to repository for code context]:path:_files -/'
+    '--languages[Language filter for repo context]:langs:'
+    '--clone[Clone repository from URL]:url:'
+    '--branch[Branch to checkout when cloning]:branch:'
+    '--keep-temp[Keep temporary directory after tests]'
+  )
+
+  _arguments -C \\
+    '1:command:->command' \\
+    '*::arg:->args'
+
+  case "\$state" in
+    command)
+      _describe 'command' commands
+      ;;
+    args)
+      case "\$words[1]" in
+        run)
+          _arguments '1:config file:_files -g "*.json"' \$run_options
+          ;;
+        validate)
+          _arguments '1:config file:_files -g "*.json"'
+          ;;
+        init)
+          _arguments '-o[Output file path]:path:_files' '--output[Output file path]:path:_files'
+          ;;
+        models)
+          _arguments '-j[Output as JSON]' '--json[Output as JSON]'
+          ;;
+        completion)
+          _arguments '1:shell:(bash zsh fish)'
+          ;;
+      esac
+      ;;
+  esac
+}
+
+_copilot_test "\$@"
+`;
+
+    const fishCompletion = `# Fish completion for copilot-test
+complete -c copilot-test -f
+complete -c cpt -f
+
+# Commands
+complete -c copilot-test -n "__fish_use_subcommand" -a "models" -d "List available Copilot models"
+complete -c copilot-test -n "__fish_use_subcommand" -a "run" -d "Run a test suite"
+complete -c copilot-test -n "__fish_use_subcommand" -a "validate" -d "Validate a test suite"
+complete -c copilot-test -n "__fish_use_subcommand" -a "init" -d "Create a sample config"
+complete -c copilot-test -n "__fish_use_subcommand" -a "completion" -d "Generate shell completion"
+
+# run options
+complete -c copilot-test -n "__fish_seen_subcommand_from run" -s o -l output -d "Output file path" -r
+complete -c copilot-test -n "__fish_seen_subcommand_from run" -s f -l format -d "Output format" -xa "markdown html json csv"
+complete -c copilot-test -n "__fish_seen_subcommand_from run" -s r -l responses -d "Include full responses"
+complete -c copilot-test -n "__fish_seen_subcommand_from run" -s m -l models -d "Comma-separated models" -r
+complete -c copilot-test -n "__fish_seen_subcommand_from run" -s i -l interactive -d "Interactive model selection"
+complete -c copilot-test -n "__fish_seen_subcommand_from run" -s a -l all-models -d "Test all models"
+complete -c copilot-test -n "__fish_seen_subcommand_from run" -l parallel -d "Run models in parallel"
+complete -c copilot-test -n "__fish_seen_subcommand_from run" -l timeout -d "Timeout per test" -r
+complete -c copilot-test -n "__fish_seen_subcommand_from run" -l retries -d "Number of retries" -r
+
+# cpt alias
+complete -c cpt -w copilot-test
+`;
+
+    switch (shell) {
+      case "bash":
+        console.log(bashCompletion);
+        console.error(chalk.dim("\n# Add to ~/.bashrc:"));
+        console.error(chalk.cyan("# eval \"$(copilot-test completion bash)\""));
+        break;
+      case "zsh":
+        console.log(zshCompletion);
+        console.error(chalk.dim("\n# Add to ~/.zshrc:"));
+        console.error(chalk.cyan("# eval \"$(copilot-test completion zsh)\""));
+        break;
+      case "fish":
+        console.log(fishCompletion);
+        console.error(chalk.dim("\n# Save to ~/.config/fish/completions/copilot-test.fish"));
+        break;
+      default:
+        console.error(chalk.red(`Unknown shell: ${shell}. Supported: bash, zsh, fish`));
+        process.exit(1);
+    }
   });
 
 function getExtension(format: OutputFormat): string {

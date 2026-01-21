@@ -1,4 +1,4 @@
-# Copilot Automated Testing
+# Copilot Model Testing CLI
 
 A TypeScript-based CLI framework for testing GitHub Copilot models for **model risk management** and evaluation. It runs configurable JSON test suites, optionally clones target repositories, applies generated changes, validates responses, and produces comprehensive reports.
 
@@ -21,59 +21,100 @@ A TypeScript-based CLI framework for testing GitHub Copilot models for **model r
 
 ## Installation
 
-```bash
-# install dependencies
-npm install
+### Global Installation (Recommended)
 
-# build the project
+```bash
+# Install globally from npm
+npm install -g @copilot/model-testing
+
+# Or use npx without installing
+npx @copilot/model-testing --help
+```
+
+### Local Development
+
+```bash
+# Clone and install
+git clone https://github.com/copilot/model-testing.git
+cd model-testing
+npm install
 npm run build
+
+# Link globally for development
+npm link
+```
+
+### Shell Completion (Optional)
+
+```bash
+# Zsh (add to ~/.zshrc)
+eval "$(copilot-test completion zsh)"
+
+# Bash (add to ~/.bashrc)
+eval "$(copilot-test completion bash)"
+
+# Fish (save to completions directory)
+copilot-test completion fish > ~/.config/fish/completions/copilot-test.fish
+```
+
+## Quick Start
+
+```bash
+# List available models
+copilot-test models
+
+# Create a sample test suite
+copilot-test init -o my-tests.json
+
+# Run tests
+copilot-test run my-tests.json -m gpt-4o --format html --responses
 ```
 
 ## Usage
 
-After building, run the CLI via `npm run start -- ...`.
+The CLI is available as `copilot-test` or the shorter alias `cpt`.
 
 ### List available models
 
 ```bash
-npm run start -- models
+copilot-test models
 
 # output as JSON
-npm run start -- models --json
+copilot-test models --json
 ```
 
 ### Run a test suite
 
 ```bash
 # run a suite with the default model
-npm run start -- run test-suites/clone-testing.json
+copilot-test run test-suites/clone-testing.json
 
 # run with a specific model
-npm run start -- run test-suites/clone-testing.json -m claude-sonnet-4.5
+copilot-test run test-suites/clone-testing.json -m claude-sonnet-4
 
 # run multiple models sequentially
-npm run start -- run test-suites/clone-testing.json -m claude-sonnet-4.5,gpt-5.2
+copilot-test run test-suites/clone-testing.json -m claude-sonnet-4,gpt-4o
 
 # run multiple models in parallel (faster)
-npm run start -- run test-suites/clone-testing.json -m claude-sonnet-4.5,gpt-5.2 --parallel
+copilot-test run test-suites/clone-testing.json -m claude-sonnet-4,gpt-4o --parallel
 
 # generate an HTML report with full responses
-npm run start -- run test-suites/clone-testing.json -f html -r -o reports/my-report
+copilot-test run test-suites/clone-testing.json -f html -r -o reports/my-report
 
 # use longer timeout for complex tests
-npm run start -- run test-suites/clone-testing.json --timeout 300000
+copilot-test run test-suites/clone-testing.json --timeout 300000
 ```
 
 ### Validate a test suite configuration
 
 ```bash
-npm run start -- validate test-suites/clone-testing.json
+copilot-test validate test-suites/clone-testing.json
 ```
 
 ### Create a sample test suite
 
 ```bash
-npm run start -- init -o my-test-suite.json
+copilot-test init -o my-test-suite.json
 ```
 
 ## Test suite configuration (JSON)
@@ -118,7 +159,6 @@ Test suites are defined as JSON. Example:
 ```
 
 See [SCHEMA.md](SCHEMA.md) for complete configuration reference and [USER_GUIDE.md](USER_GUIDE.md) for detailed usage examples.
-```
 
 ## Available scripts and commands
 
@@ -133,8 +173,6 @@ See [SCHEMA.md](SCHEMA.md) for complete configuration reference and [USER_GUIDE.
 
 ### CLI commands
 
-When running via `npm run start -- <command>`:
-
 - `models [--json]` — List available models (fetched from Copilot API)
 - `run <config> [options]` — Execute a test suite
   - `-m, --models <models>` — Comma-separated list of models
@@ -147,6 +185,7 @@ When running via `npm run start -- <command>`:
   - `-a, --all-models` — Test all available models
 - `validate <config>` — Validate a config file
 - `init [-o <path>]` — Generate a sample config
+- `completion [shell]` — Generate shell completion (bash, zsh, fish)
 
 For detailed documentation, see [USER_GUIDE.md](USER_GUIDE.md).
 
