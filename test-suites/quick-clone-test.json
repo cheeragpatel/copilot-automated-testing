@@ -1,0 +1,37 @@
+{
+  "name": "Quick Clone Test",
+  "description": "Quick test of clone and diff capture functionality",
+  "models": ["gpt-4.1"],
+  "repoClone": {
+    "repoUrl": "https://github.com/cheeragpatel/demo_copilot_agent",
+    "branch": "main",
+    "depth": 1,
+    "keepTempDir": true
+  },
+  "repositoryContext": {
+    "includeFiles": ["*.js"],
+    "excludeFiles": ["node_modules", "dist", ".git", "test"],
+    "maxFiles": 5,
+    "maxFileSizeBytes": 20000,
+    "languages": ["javascript"]
+  },
+  "options": {
+    "timeoutMs": 60000,
+    "retries": 1,
+    "delayBetweenTestsMs": 500
+  },
+  "testCases": [
+    {
+      "id": "quick-test-001",
+      "name": "Add utility function",
+      "category": "Code Generation",
+      "testType": "code-generation",
+      "prompt": "Create a simple JavaScript utility file at `lib/helpers/stringUtils.js` that exports two functions:\n1. `capitalize(str)` - capitalizes the first letter of a string\n2. `truncate(str, maxLength)` - truncates string to maxLength with '...' suffix\n\nInclude JSDoc comments for each function.\n\nProvide the complete code for the file wrapped in a code block.",
+      "expectedBehavior": "Should generate a complete utility file with exports",
+      "applyChanges": true,
+      "targetFile": "lib/helpers/stringUtils.js",
+      "expectedPatterns": ["function|const", "capitalize", "truncate", "module\\.exports|export"],
+      "tags": ["utility", "strings"]
+    }
+  ]
+}

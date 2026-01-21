@@ -1,0 +1,360 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/copilot-automated-testing/test-suite-schema.json",
+  "title": "Copilot Test Suite Configuration",
+  "description": "JSON schema for Copilot Automated Testing framework test suite configuration files",
+  "type": "object",
+  "required": ["name", "description", "models", "testCases"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the test suite",
+      "minLength": 1,
+      "examples": ["Model Risk Assessment Suite", "Code Generation Tests"]
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of what this test suite evaluates",
+      "minLength": 1,
+      "examples": ["Evaluates Copilot models for security and code quality"]
+    },
+    "models": {
+      "type": "array",
+      "description": "Array of Copilot model IDs to test",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-zA-Z0-9._-]+$",
+        "examples": ["gpt-4.1", "claude-sonnet-4.5", "o1-preview"]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "testCases": {
+      "type": "array",
+      "description": "Array of test cases to execute",
+      "items": {
+        "$ref": "#/definitions/TestCase"
+      },
+      "minItems": 1
+    },
+    "options": {
+      "$ref": "#/definitions/TestOptions"
+    },
+    "repositoryContext": {
+      "$ref": "#/definitions/RepositoryContext"
+    },
+    "repoClone": {
+      "$ref": "#/definitions/RepoCloneConfig"
+    }
+  },
+  "definitions": {
+    "TestCase": {
+      "type": "object",
+      "description": "A single test case to run against Copilot models",
+      "required": ["id", "name", "category", "prompt"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the test case",
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "examples": ["test-001", "security-sql-injection"]
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable name of the test",
+          "minLength": 1,
+          "examples": ["Generate string utility functions", "Test authentication flow"]
+        },
+        "category": {
+          "type": "string",
+          "description": "Category for organizing test cases",
+          "minLength": 1,
+          "examples": ["Code Generation", "Bug Fixing", "Security", "Documentation"]
+        },
+        "prompt": {
+          "type": "string",
+          "description": "The instruction or question to send to the model",
+          "minLength": 1,
+          "examples": ["Create a function that capitalizes each word in a string"]
+        },
+        "expectedBehavior": {
+          "type": "string",
+          "description": "Human-readable description of expected behavior for manual review"
+        },
+        "systemMessage": {
+          "type": "string",
+          "description": "Custom system message to override default"
+        },
+        "tags": {
+          "type": "array",
+          "description": "Tags for filtering and organization",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "examples": [["typescript", "utility", "strings"]]
+        },
+        "testType": {
+          "type": "string",
+          "description": "Type of development test",
+          "enum": [
+            "code-generation",
+            "code-completion",
+            "bug-fix",
+            "refactoring",
+            "code-review",
+            "documentation",
+            "test-generation",
+            "explanation",
+            "debugging",
+            "security-review",
+            "performance-optimization",
+            "api-design",
+            "error-handling",
+            "type-safety"
+          ]
+        },
+        "expectedPatterns": {
+          "type": "array",
+          "description": "Regular expression patterns that MUST appear in response",
+          "items": {
+            "type": "string"
+          },
+          "examples": [["function", "export", "return"]]
+        },
+        "forbiddenPatterns": {
+          "type": "array",
+          "description": "Regular expression patterns that MUST NOT appear in response",
+          "items": {
+            "type": "string"
+          },
+          "examples": [["eval", "exec", "dangerouslySetInnerHTML"]]
+        },
+        "applyChanges": {
+          "type": "boolean",
+          "description": "Whether to apply generated code to the repository",
+          "default": false
+        },
+        "targetFile": {
+          "type": "string",
+          "description": "Target file path for code changes (relative to repo root)",
+          "examples": ["src/utils/stringUtils.js"]
+        },
+        "codeContext": {
+          "type": "array",
+          "description": "Array of code files to include as context",
+          "items": {
+            "$ref": "#/definitions/CodeContext"
+          }
+        },
+        "riskCriteria": {
+          "type": "array",
+          "description": "Risk criteria for evaluation",
+          "items": {
+            "$ref": "#/definitions/RiskCriterion"
+          }
+        }
+      },
+      "if": {
+        "properties": {
+          "applyChanges": {
+            "const": true
+          }
+        }
+      },
+      "then": {
+        "required": ["targetFile"]
+      }
+    },
+    "CodeContext": {
+      "type": "object",
+      "description": "Code file to include as context",
+      "required": ["filePath"],
+      "properties": {
+        "filePath": {
+          "type": "string",
+          "description": "File path relative to repository root",
+          "examples": ["src/auth/User.ts"]
+        },
+        "content": {
+          "type": "string",
+          "description": "File content (auto-loaded if omitted)"
+        },
+        "language": {
+          "type": "string",
+          "description": "Programming language",
+          "examples": ["typescript", "javascript", "python"]
+        },
+        "lineRange": {
+          "type": "object",
+          "description": "Specific line range to include",
+          "required": ["start", "end"],
+          "properties": {
+            "start": {
+              "type": "integer",
+              "description": "Starting line number (1-indexed)",
+              "minimum": 1
+            },
+            "end": {
+              "type": "integer",
+              "description": "Ending line number (inclusive)",
+              "minimum": 1
+            }
+          }
+        }
+      }
+    },
+    "RiskCriterion": {
+      "type": "object",
+      "description": "Risk criterion for manual evaluation",
+      "required": ["name", "description", "severity"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the risk criterion",
+          "minLength": 1,
+          "examples": ["SQL Injection", "XSS Vulnerability"]
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of what to look for",
+          "minLength": 1
+        },
+        "severity": {
+          "type": "string",
+          "description": "Severity level if violated",
+          "enum": ["low", "medium", "high", "critical"]
+        }
+      }
+    },
+    "TestOptions": {
+      "type": "object",
+      "description": "Global execution options for the test suite",
+      "properties": {
+        "timeoutMs": {
+          "type": "integer",
+          "description": "Timeout per test in milliseconds",
+          "minimum": 1000,
+          "maximum": 600000,
+          "default": 60000,
+          "examples": [120000, 300000]
+        },
+        "streaming": {
+          "type": "boolean",
+          "description": "Enable streaming responses from Copilot",
+          "default": false
+        },
+        "retries": {
+          "type": "integer",
+          "description": "Number of retry attempts on test failure",
+          "minimum": 0,
+          "maximum": 10,
+          "default": 1
+        },
+        "delayBetweenTestsMs": {
+          "type": "integer",
+          "description": "Delay between tests in milliseconds",
+          "minimum": 0,
+          "maximum": 60000,
+          "default": 500
+        },
+        "parallel": {
+          "type": "boolean",
+          "description": "Run test cases in parallel (reserved for future use)",
+          "default": false
+        },
+        "parallelModels": {
+          "type": "boolean",
+          "description": "Run different models in parallel",
+          "default": false
+        }
+      }
+    },
+    "RepositoryContext": {
+      "type": "object",
+      "description": "Configuration for loading code context from a local repository",
+      "required": ["path"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to repository root",
+          "minLength": 1,
+          "examples": ["./my-project", "/Users/user/projects/app"]
+        },
+        "includeFiles": {
+          "type": "array",
+          "description": "Glob patterns for files to include",
+          "items": {
+            "type": "string"
+          },
+          "examples": [["src/**/*.ts", "src/**/*.tsx"]]
+        },
+        "excludeFiles": {
+          "type": "array",
+          "description": "Glob patterns for files to exclude",
+          "items": {
+            "type": "string"
+          },
+          "examples": [["**/*.test.ts", "node_modules/**"]]
+        },
+        "maxFiles": {
+          "type": "integer",
+          "description": "Maximum number of files to include",
+          "minimum": 1,
+          "maximum": 1000,
+          "default": 100
+        },
+        "maxFileSizeBytes": {
+          "type": "integer",
+          "description": "Maximum file size in bytes",
+          "minimum": 1,
+          "maximum": 10000000,
+          "default": 100000
+        },
+        "languages": {
+          "type": "array",
+          "description": "Filter by programming language",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "examples": [["typescript", "javascript", "python"]]
+        }
+      }
+    },
+    "RepoCloneConfig": {
+      "type": "object",
+      "description": "Configuration for cloning a repository temporarily for testing",
+      "required": ["repoUrl"],
+      "properties": {
+        "repoUrl": {
+          "type": "string",
+          "description": "Repository URL (HTTPS or SSH)",
+          "format": "uri",
+          "pattern": "^(https?://|git@)",
+          "examples": [
+            "https://github.com/username/repo",
+            "git@github.com:username/repo.git"
+          ]
+        },
+        "branch": {
+          "type": "string",
+          "description": "Branch to checkout",
+          "examples": ["main", "develop", "feature/new-feature"]
+        },
+        "depth": {
+          "type": "integer",
+          "description": "Shallow clone depth (1 = only latest commit)",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 1
+        },
+        "keepTempDir": {
+          "type": "boolean",
+          "description": "Keep temporary directory after tests (for debugging)",
+          "default": false
+        }
+      }
+    }
+  }
+}

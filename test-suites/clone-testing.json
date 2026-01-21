@@ -1,0 +1,121 @@
+{
+  "name": "Repository Clone Testing Suite",
+  "description": "Test suite that clones a repository, applies Copilot-generated code changes, and captures diffs",
+  "models": ["claude-sonnet-4.5"],
+  "repoClone": {
+    "repoUrl": "https://github.com/cheeragpatel/demo_copilot_agent",
+    "branch": "main",
+    "depth": 1,
+    "keepTempDir": false
+  },
+  "repositoryContext": {
+    "includeFiles": ["*.js", "*.ts", "*.json", "*.md"],
+    "excludeFiles": ["node_modules", "dist", ".git"],
+    "maxFiles": 20,
+    "maxFileSizeBytes": 30000,
+    "languages": ["javascript", "typescript"]
+  },
+  "options": {
+    "timeoutMs": 120000,
+    "retries": 1,
+    "delayBetweenTestsMs": 2000
+  },
+  "testCases": [
+    {
+      "id": "clone-gen-001",
+      "name": "Create string utility functions",
+      "category": "Code Generation",
+      "testType": "code-generation",
+      "prompt": "Create a JavaScript utility file at `src/utils/stringUtils.js` that exports functions for:\n1. `capitalize(str)` - capitalizes first letter\n2. `slugify(str)` - converts string to URL-friendly slug\n3. `truncate(str, maxLength)` - truncates with ellipsis\n\nInclude JSDoc comments. Provide the complete code in a code block.",
+      "expectedBehavior": "Should generate a complete utility file with proper exports",
+      "applyChanges": true,
+      "targetFile": "src/utils/stringUtils.js",
+      "expectedPatterns": ["function|const|=>", "capitalize", "truncate"],
+      "tags": ["utility", "strings"]
+    },
+    {
+      "id": "clone-gen-002",
+      "name": "Create array helper utilities",
+      "category": "Code Generation",
+      "testType": "code-generation",
+      "prompt": "Create a JavaScript utility file at `src/utils/arrayUtils.js` with these functions:\n1. `unique(arr)` - returns array with duplicates removed\n2. `chunk(arr, size)` - splits array into chunks of specified size\n3. `shuffle(arr)` - randomly shuffles array elements\n4. `groupBy(arr, key)` - groups array of objects by a key\n\nInclude JSDoc comments and proper exports. Provide the complete code in a code block.",
+      "expectedBehavior": "Should generate array utility functions",
+      "applyChanges": true,
+      "targetFile": "src/utils/arrayUtils.js",
+      "expectedPatterns": ["function|const|=>", "unique|chunk|shuffle|groupBy", "return"],
+      "tags": ["utility", "arrays"]
+    },
+    {
+      "id": "clone-gen-003",
+      "name": "Create a simple logger module",
+      "category": "Code Generation",
+      "testType": "code-generation",
+      "prompt": "Create a simple logging utility at `src/utils/logger.js` that provides:\n1. `log(message)` - logs with timestamp\n2. `warn(message)` - logs warning with yellow color code\n3. `error(message)` - logs error with red color code\n4. `debug(message)` - only logs if DEBUG env var is set\n\nUse console methods internally. Provide the complete code in a code block.",
+      "expectedBehavior": "Should generate a logging utility",
+      "applyChanges": true,
+      "targetFile": "src/utils/logger.js",
+      "expectedPatterns": ["console", "log|warn|error", "function|const|=>"],
+      "tags": ["utility", "logging"]
+    },
+    {
+      "id": "clone-fix-001",
+      "name": "Add input validation helper",
+      "category": "Code Generation",
+      "testType": "code-generation",
+      "prompt": "Create a validation utility at `src/utils/validator.js` with these functions:\n1. `isEmail(str)` - validates email format using regex\n2. `isURL(str)` - validates URL format\n3. `isNotEmpty(str)` - checks string is not null/undefined/empty\n4. `isNumber(val)` - checks if value is a valid number\n5. `isInRange(num, min, max)` - checks if number is within range\n\nReturn boolean values. Provide the complete code in a code block.",
+      "expectedBehavior": "Should create validation functions with proper regex",
+      "applyChanges": true,
+      "targetFile": "src/utils/validator.js",
+      "expectedPatterns": ["function|const|=>", "return", "true|false"],
+      "tags": ["validation", "utility"]
+    },
+    {
+      "id": "clone-doc-001",
+      "name": "Generate README documentation",
+      "category": "Documentation",
+      "testType": "documentation",
+      "prompt": "Create a README.md file for this project that includes:\n1. Project title and description\n2. Installation instructions (npm install)\n3. Usage examples with code snippets\n4. Available scripts/commands\n5. Contributing guidelines\n6. License section (MIT)\n\nUse proper Markdown formatting with headers, code blocks, and lists. Provide the complete content in a code block.",
+      "expectedBehavior": "Should generate comprehensive README documentation",
+      "applyChanges": true,
+      "targetFile": "README.md",
+      "expectedPatterns": ["#", "install|npm", "```"],
+      "tags": ["documentation", "readme"]
+    },
+    {
+      "id": "clone-test-001",
+      "name": "Generate unit tests for utilities",
+      "category": "Test Generation",
+      "testType": "test-generation",
+      "prompt": "Create a test file at `test/utils.test.js` that tests string utility functions:\n1. Test capitalize() with various inputs including empty string and null\n2. Test truncate() with strings shorter and longer than maxLength\n3. Test edge cases like special characters and unicode\n\nUse Jest or Node's built-in assert module. Provide the complete code in a code block.",
+      "expectedBehavior": "Should generate comprehensive unit tests",
+      "applyChanges": true,
+      "targetFile": "test/utils.test.js",
+      "expectedPatterns": ["describe|test|it", "expect|assert", "function|=>"],
+      "tags": ["testing", "unit-tests"]
+    },
+    {
+      "id": "clone-config-001",
+      "name": "Create configuration module",
+      "category": "Code Generation",
+      "testType": "code-generation",
+      "prompt": "Create a configuration module at `src/config/index.js` that:\n1. Loads environment variables from process.env\n2. Provides defaults for common settings (port, host, debug mode)\n3. Exports a frozen config object to prevent mutation\n4. Includes validation to ensure required vars are present\n\nProvide the complete code in a code block.",
+      "expectedBehavior": "Should generate a proper config module",
+      "applyChanges": true,
+      "targetFile": "src/config/index.js",
+      "expectedPatterns": ["process.env|process\\.env", "export|module", "const|let"],
+      "tags": ["config", "environment"]
+    },
+    {
+      "id": "clone-api-001",
+      "name": "Create HTTP client wrapper",
+      "category": "Code Generation",
+      "testType": "code-generation",
+      "prompt": "Create an HTTP client wrapper at `src/utils/httpClient.js` that provides:\n1. `get(url, options)` - performs GET request\n2. `post(url, data, options)` - performs POST request\n3. `put(url, data, options)` - performs PUT request\n4. `delete(url, options)` - performs DELETE request\n\nUse the native fetch API. Handle errors gracefully. Return JSON responses. Provide the complete code in a code block.",
+      "expectedBehavior": "Should generate a fetch-based HTTP client",
+      "applyChanges": true,
+      "targetFile": "src/utils/httpClient.js",
+      "expectedPatterns": ["fetch|async|await", "get|post|put", "return|response"],
+      "tags": ["http", "api", "fetch"]
+    }
+  ]
+}

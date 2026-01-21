@@ -1,0 +1,236 @@
+{
+  "name": "Development Testing Suite",
+  "description": "Test suite for evaluating Copilot models on real-world development tasks using repository context",
+  "models": ["gpt-4.1", "claude-sonnet-4"],
+  "repositoryContext": {
+    "path": "./",
+    "includeFiles": ["*.ts", "*.js", "*.json"],
+    "excludeFiles": ["node_modules", "dist", ".git", "*.min.js"],
+    "maxFiles": 30,
+    "maxFileSizeBytes": 50000,
+    "languages": ["typescript", "javascript"]
+  },
+  "options": {
+    "timeoutMs": 90000,
+    "retries": 2,
+    "delayBetweenTestsMs": 1000
+  },
+  "testCases": [
+    {
+      "id": "code-gen-001",
+      "name": "Generate TypeScript function from description",
+      "category": "Code Generation",
+      "testType": "code-generation",
+      "prompt": "Write a TypeScript function called `parseQueryString` that takes a URL query string (e.g., '?name=John&age=30') and returns an object with the key-value pairs. Handle edge cases like empty strings, missing values, and URL-encoded characters.",
+      "expectedBehavior": "Should generate a well-typed function with proper error handling",
+      "expectedPatterns": ["function", "parseQueryString", "Record<string", "decodeURIComponent"],
+      "forbiddenPatterns": ["any\\s*[;\\)]", "TODO", "FIXME"],
+      "tags": ["typescript", "parsing", "utility"]
+    },
+    {
+      "id": "code-gen-002",
+      "name": "Generate async data fetching hook",
+      "category": "Code Generation",
+      "testType": "code-generation",
+      "prompt": "Create a custom React hook called `useAsyncData<T>` that handles data fetching with loading states, error handling, and automatic retry logic. Include proper TypeScript generics.",
+      "expectedBehavior": "Should generate a reusable hook with proper state management",
+      "expectedPatterns": ["useState|state", "useEffect|effect", "async|await", "loading|isLoading", "error|Error"],
+      "tags": ["react", "hooks", "typescript", "async"]
+    },
+    {
+      "id": "code-gen-003",
+      "name": "Generate REST API endpoint handler",
+      "category": "Code Generation",
+      "testType": "code-generation",
+      "prompt": "Write an Express.js route handler for a POST /api/users endpoint that validates the request body (name: string, email: string, age: number), creates a user, and returns appropriate status codes (201 for success, 400 for validation error, 500 for server error).",
+      "expectedBehavior": "Should include input validation and proper HTTP status codes",
+      "expectedPatterns": ["req|request", "res|response", "status|Status", "201|created", "400|bad"],
+      "forbiddenPatterns": [],
+      "tags": ["express", "api", "validation"]
+    },
+    {
+      "id": "bug-fix-001",
+      "name": "Fix race condition in async code",
+      "category": "Bug Fix",
+      "testType": "bug-fix",
+      "prompt": "The following code has a race condition bug. Identify and fix it:\n\n```typescript\nlet cachedData: Data | null = null;\n\nasync function getData(): Promise<Data> {\n  if (cachedData) {\n    return cachedData;\n  }\n  \n  const data = await fetchFromAPI();\n  cachedData = data;\n  return data;\n}\n```\n\nMultiple concurrent calls may cause redundant API fetches.",
+      "expectedBehavior": "Should implement proper synchronization using promises or locks",
+      "expectedPatterns": ["Promise|promise|await", "pending|lock|mutex|once|singleton|cache"],
+      "tags": ["async", "race-condition", "caching"]
+    },
+    {
+      "id": "bug-fix-002",
+      "name": "Fix memory leak in event listener",
+      "category": "Bug Fix",
+      "testType": "bug-fix",
+      "prompt": "This React component has a memory leak. Identify and fix it:\n\n```typescript\nfunction WindowSize() {\n  const [size, setSize] = useState({ width: 0, height: 0 });\n\n  useEffect(() => {\n    const handleResize = () => {\n      setSize({ width: window.innerWidth, height: window.innerHeight });\n    };\n    window.addEventListener('resize', handleResize);\n    handleResize();\n  }, []);\n\n  return <div>Width: {size.width}, Height: {size.height}</div>;\n}\n```",
+      "expectedBehavior": "Should add cleanup function to remove event listener",
+      "expectedPatterns": ["removeEventListener", "return", "cleanup|unmount"],
+      "tags": ["react", "memory-leak", "useEffect"]
+    },
+    {
+      "id": "bug-fix-003",
+      "name": "Fix SQL injection vulnerability",
+      "category": "Bug Fix",
+      "testType": "security-review",
+      "prompt": "This code is vulnerable to SQL injection. Fix it:\n\n```javascript\napp.get('/users', async (req, res) => {\n  const name = req.query.name;\n  const result = await db.query(`SELECT * FROM users WHERE name = '${name}'`);\n  res.json(result);\n});\n```",
+      "expectedBehavior": "Should use parameterized queries or prepared statements",
+      "expectedPatterns": ["\\$\\d|\\?|parameterized|prepared|escape|placeholder|bind"],
+      "forbiddenPatterns": ["\\$\\{name\\}|\\+ name \\+|'\\s*\\+\\s*name"],
+      "tags": ["security", "sql-injection", "database"]
+    },
+    {
+      "id": "refactor-001",
+      "name": "Refactor callback hell to async/await",
+      "category": "Refactoring",
+      "testType": "refactoring",
+      "prompt": "Refactor this callback-based code to use async/await:\n\n```javascript\nfunction processOrder(orderId, callback) {\n  getOrder(orderId, (err, order) => {\n    if (err) return callback(err);\n    validateOrder(order, (err, isValid) => {\n      if (err) return callback(err);\n      if (!isValid) return callback(new Error('Invalid order'));\n      processPayment(order, (err, payment) => {\n        if (err) return callback(err);\n        shipOrder(order, payment, (err, shipment) => {\n          if (err) return callback(err);\n          callback(null, { order, payment, shipment });\n        });\n      });\n    });\n  });\n}\n```",
+      "expectedBehavior": "Should convert to clean async/await with proper error handling",
+      "expectedPatterns": ["async", "await"],
+      "forbiddenPatterns": ["callback\\("],
+      "tags": ["refactoring", "async", "clean-code"]
+    },
+    {
+      "id": "refactor-002",
+      "name": "Extract reusable validation logic",
+      "category": "Refactoring",
+      "testType": "refactoring",
+      "prompt": "Refactor this repetitive validation code into a reusable validation system:\n\n```typescript\nfunction validateUser(user: any) {\n  const errors: string[] = [];\n  if (!user.name || user.name.length < 2) errors.push('Name must be at least 2 characters');\n  if (!user.email || !user.email.includes('@')) errors.push('Invalid email');\n  if (!user.age || user.age < 0) errors.push('Age must be positive');\n  return errors;\n}\n\nfunction validateProduct(product: any) {\n  const errors: string[] = [];\n  if (!product.name || product.name.length < 2) errors.push('Name must be at least 2 characters');\n  if (!product.price || product.price < 0) errors.push('Price must be positive');\n  if (!product.sku || product.sku.length !== 10) errors.push('SKU must be 10 characters');\n  return errors;\n}\n```",
+      "expectedBehavior": "Should create a schema-based or functional validation system",
+      "expectedPatterns": ["schema|validator|rule|validate|Validator|Schema|Rule"],
+      "tags": ["refactoring", "validation", "dry"]
+    },
+    {
+      "id": "test-gen-001",
+      "name": "Generate unit tests for utility function",
+      "category": "Test Generation",
+      "testType": "test-generation",
+      "prompt": "Write comprehensive unit tests for this function using Jest:\n\n```typescript\nfunction debounce<T extends (...args: any[]) => any>(\n  func: T,\n  waitMs: number\n): (...args: Parameters<T>) => void {\n  let timeoutId: NodeJS.Timeout | null = null;\n  \n  return (...args: Parameters<T>) => {\n    if (timeoutId) {\n      clearTimeout(timeoutId);\n    }\n    timeoutId = setTimeout(() => {\n      func(...args);\n      timeoutId = null;\n    }, waitMs);\n  };\n}\n```\n\nInclude tests for: basic debouncing, multiple rapid calls, clearing timeout, argument passing.",
+      "expectedBehavior": "Should generate comprehensive test cases with proper mocking",
+      "expectedPatterns": ["describe", "it|test", "expect", "jest.useFakeTimers|setTimeout"],
+      "tags": ["testing", "jest", "unit-tests"]
+    },
+    {
+      "id": "test-gen-002",
+      "name": "Generate integration test for API endpoint",
+      "category": "Test Generation",
+      "testType": "test-generation",
+      "prompt": "Write integration tests for this Express endpoint using supertest:\n\n```typescript\napp.post('/api/login', async (req, res) => {\n  const { email, password } = req.body;\n  \n  if (!email || !password) {\n    return res.status(400).json({ error: 'Email and password required' });\n  }\n  \n  const user = await findUserByEmail(email);\n  if (!user || !(await verifyPassword(password, user.passwordHash))) {\n    return res.status(401).json({ error: 'Invalid credentials' });\n  }\n  \n  const token = generateToken(user);\n  res.json({ token, user: { id: user.id, email: user.email } });\n});\n```\n\nTest: successful login, missing fields, invalid email, wrong password.",
+      "expectedBehavior": "Should test all status codes and edge cases",
+      "expectedPatterns": ["supertest|request|fetch", "200|401|400|status", "expect|assert"],
+      "tags": ["testing", "integration", "api"]
+    },
+    {
+      "id": "doc-001",
+      "name": "Generate JSDoc documentation",
+      "category": "Documentation",
+      "testType": "documentation",
+      "prompt": "Add comprehensive JSDoc documentation to this class:\n\n```typescript\nclass EventEmitter<T extends Record<string, any>> {\n  private listeners: Map<keyof T, Set<(data: any) => void>> = new Map();\n\n  on<K extends keyof T>(event: K, callback: (data: T[K]) => void): () => void {\n    if (!this.listeners.has(event)) {\n      this.listeners.set(event, new Set());\n    }\n    this.listeners.get(event)!.add(callback);\n    return () => this.off(event, callback);\n  }\n\n  off<K extends keyof T>(event: K, callback: (data: T[K]) => void): void {\n    this.listeners.get(event)?.delete(callback);\n  }\n\n  emit<K extends keyof T>(event: K, data: T[K]): void {\n    this.listeners.get(event)?.forEach(cb => cb(data));\n  }\n}\n```",
+      "expectedBehavior": "Should add @class, @template, @param, @returns, @example tags",
+      "expectedPatterns": ["@param|@property", "@returns|@return"],
+      "tags": ["documentation", "jsdoc", "typescript"]
+    },
+    {
+      "id": "doc-002",
+      "name": "Generate API documentation",
+      "category": "Documentation",
+      "testType": "documentation",
+      "prompt": "Write OpenAPI/Swagger documentation for this endpoint:\n\n```typescript\n// POST /api/orders\n// Creates a new order\ninterface CreateOrderRequest {\n  customerId: string;\n  items: Array<{ productId: string; quantity: number }>;\n  shippingAddress: {\n    street: string;\n    city: string;\n    zipCode: string;\n    country: string;\n  };\n  paymentMethod: 'credit_card' | 'paypal' | 'bank_transfer';\n}\n\ninterface OrderResponse {\n  orderId: string;\n  status: 'pending' | 'confirmed' | 'shipped';\n  totalAmount: number;\n  estimatedDelivery: string;\n}\n```",
+      "expectedBehavior": "Should generate valid OpenAPI spec with schemas and responses",
+      "expectedPatterns": ["openapi|swagger", "schema", "responses", "200|201|400"],
+      "tags": ["documentation", "openapi", "api"]
+    },
+    {
+      "id": "explain-001",
+      "name": "Explain complex algorithm",
+      "category": "Explanation",
+      "testType": "explanation",
+      "prompt": "Explain what this code does, its time complexity, and potential improvements:\n\n```typescript\nfunction longestPalindrome(s: string): string {\n  if (s.length < 2) return s;\n  \n  let start = 0, maxLen = 1;\n  \n  function expandAroundCenter(left: number, right: number): void {\n    while (left >= 0 && right < s.length && s[left] === s[right]) {\n      if (right - left + 1 > maxLen) {\n        start = left;\n        maxLen = right - left + 1;\n      }\n      left--;\n      right++;\n    }\n  }\n  \n  for (let i = 0; i < s.length; i++) {\n    expandAroundCenter(i, i);\n    expandAroundCenter(i, i + 1);\n  }\n  \n  return s.substring(start, start + maxLen);\n}\n```",
+      "expectedBehavior": "Should explain the algorithm, analyze complexity, suggest improvements",
+      "expectedPatterns": ["O\\(n", "palindrome", "expand|center"],
+      "tags": ["explanation", "algorithm", "complexity"]
+    },
+    {
+      "id": "perf-001",
+      "name": "Optimize database query",
+      "category": "Performance",
+      "testType": "performance-optimization",
+      "prompt": "Optimize this inefficient database access pattern:\n\n```typescript\nasync function getUsersWithOrders() {\n  const users = await db.query('SELECT * FROM users');\n  \n  for (const user of users) {\n    const orders = await db.query(\n      `SELECT * FROM orders WHERE user_id = ${user.id}`\n    );\n    user.orders = orders;\n    \n    for (const order of orders) {\n      const items = await db.query(\n        `SELECT * FROM order_items WHERE order_id = ${order.id}`\n      );\n      order.items = items;\n    }\n  }\n  \n  return users;\n}\n```",
+      "expectedBehavior": "Should use JOINs, batch queries, or other optimization techniques",
+      "expectedPatterns": ["JOIN|IN \\(|batch|Promise.all"],
+      "forbiddenPatterns": ["for.*await.*for.*await"],
+      "tags": ["performance", "database", "n+1"]
+    },
+    {
+      "id": "perf-002",
+      "name": "Optimize React component rendering",
+      "category": "Performance",
+      "testType": "performance-optimization",
+      "prompt": "Optimize this React component that causes unnecessary re-renders:\n\n```typescript\nfunction ProductList({ products, onSelect }) {\n  const [filter, setFilter] = useState('');\n  \n  const filteredProducts = products.filter(p => \n    p.name.toLowerCase().includes(filter.toLowerCase())\n  );\n  \n  const handleSelect = (product) => {\n    console.log('Selected:', product);\n    onSelect(product);\n  };\n  \n  return (\n    <div>\n      <input value={filter} onChange={e => setFilter(e.target.value)} />\n      {filteredProducts.map(product => (\n        <ProductCard \n          key={product.id}\n          product={product}\n          onSelect={() => handleSelect(product)}\n        />\n      ))}\n    </div>\n  );\n}\n```",
+      "expectedBehavior": "Should use useMemo, useCallback, or React.memo appropriately",
+      "expectedPatterns": ["useMemo|useCallback|React.memo"],
+      "tags": ["react", "performance", "optimization"]
+    },
+    {
+      "id": "security-001",
+      "name": "Review code for security vulnerabilities",
+      "category": "Security Review",
+      "testType": "security-review",
+      "prompt": "Review this code for security vulnerabilities and suggest fixes:\n\n```typescript\napp.post('/upload', (req, res) => {\n  const fileName = req.body.fileName;\n  const fileContent = req.body.content;\n  \n  fs.writeFileSync(`./uploads/${fileName}`, fileContent);\n  res.json({ path: `/uploads/${fileName}` });\n});\n\napp.get('/file', (req, res) => {\n  const filePath = req.query.path;\n  const content = fs.readFileSync(filePath, 'utf-8');\n  res.send(content);\n});\n```",
+      "expectedBehavior": "Should identify path traversal, unrestricted file upload vulnerabilities",
+      "expectedPatterns": ["path traversal|directory traversal|sanitize|validate|whitelist"],
+      "tags": ["security", "file-upload", "path-traversal"]
+    },
+    {
+      "id": "type-safety-001",
+      "name": "Add TypeScript types to JavaScript code",
+      "category": "Type Safety",
+      "testType": "type-safety",
+      "prompt": "Convert this JavaScript code to TypeScript with proper types:\n\n```javascript\nfunction createStore(initialState) {\n  let state = initialState;\n  const listeners = [];\n  \n  return {\n    getState() {\n      return state;\n    },\n    setState(newState) {\n      state = { ...state, ...newState };\n      listeners.forEach(listener => listener(state));\n    },\n    subscribe(listener) {\n      listeners.push(listener);\n      return () => {\n        const index = listeners.indexOf(listener);\n        if (index > -1) listeners.splice(index, 1);\n      };\n    }\n  };\n}\n```",
+      "expectedBehavior": "Should add generic types and proper function signatures",
+      "expectedPatterns": ["<T", "interface|type", ":\\s*\\("],
+      "forbiddenPatterns": [":\\s*any(?![a-zA-Z])"],
+      "tags": ["typescript", "types", "migration"]
+    },
+    {
+      "id": "error-handling-001",
+      "name": "Implement comprehensive error handling",
+      "category": "Error Handling",
+      "testType": "error-handling",
+      "prompt": "Add comprehensive error handling to this API client:\n\n```typescript\nclass APIClient {\n  private baseUrl: string;\n  \n  constructor(baseUrl: string) {\n    this.baseUrl = baseUrl;\n  }\n  \n  async get(endpoint: string) {\n    const response = await fetch(`${this.baseUrl}${endpoint}`);\n    return response.json();\n  }\n  \n  async post(endpoint: string, data: any) {\n    const response = await fetch(`${this.baseUrl}${endpoint}`, {\n      method: 'POST',\n      body: JSON.stringify(data),\n    });\n    return response.json();\n  }\n}\n```\n\nInclude: custom error classes, retry logic, timeout handling, HTTP status code handling.",
+      "expectedBehavior": "Should implement robust error handling with custom errors",
+      "expectedPatterns": ["class.*Error|throw", "try", "catch", "retry|timeout|status"],
+      "tags": ["error-handling", "api", "resilience"]
+    },
+    {
+      "id": "api-design-001",
+      "name": "Design RESTful API endpoints",
+      "category": "API Design",
+      "testType": "api-design",
+      "prompt": "Design a RESTful API for a blog platform with the following requirements:\n- Users can create, read, update, delete posts\n- Posts can have multiple comments\n- Users can like posts and comments\n- Posts can be tagged\n- Support pagination and filtering\n\nProvide the endpoint definitions with HTTP methods, paths, request/response schemas.",
+      "expectedBehavior": "Should follow REST best practices with proper resource naming",
+      "expectedPatterns": ["GET|POST|PUT|PATCH|DELETE", "/posts|/users|/comments", "pagination|page|limit"],
+      "tags": ["api-design", "rest", "architecture"]
+    },
+    {
+      "id": "debug-001",
+      "name": "Debug failing test",
+      "category": "Debugging",
+      "testType": "debugging",
+      "prompt": "This test is failing intermittently. Identify the issue and fix it:\n\n```typescript\ndescribe('Cache', () => {\n  let cache: Cache;\n  \n  beforeEach(() => {\n    cache = new Cache({ ttlMs: 100 });\n  });\n  \n  it('should expire items after TTL', async () => {\n    cache.set('key', 'value');\n    expect(cache.get('key')).toBe('value');\n    \n    await new Promise(resolve => setTimeout(resolve, 100));\n    \n    expect(cache.get('key')).toBeUndefined();\n  });\n});\n```\n\nThe test sometimes passes and sometimes fails.",
+      "expectedBehavior": "Should identify timing issues and suggest proper async handling",
+      "expectedPatterns": ["timing|race|flaky|margin|buffer|>=|>\\s*100"],
+      "tags": ["debugging", "testing", "async"]
+    },
+    {
+      "id": "code-review-001",
+      "name": "Code review for production readiness",
+      "category": "Code Review",
+      "testType": "code-review",
+      "prompt": "Review this code for production readiness and provide specific improvements:\n\n```typescript\nconst express = require('express');\nconst app = express();\n\nlet users = [];\n\napp.post('/register', (req, res) => {\n  const user = {\n    id: users.length + 1,\n    email: req.body.email,\n    password: req.body.password,\n    createdAt: new Date()\n  };\n  users.push(user);\n  res.json(user);\n});\n\napp.post('/login', (req, res) => {\n  const user = users.find(u => \n    u.email === req.body.email && u.password === req.body.password\n  );\n  if (user) {\n    res.json({ token: 'secret-token-' + user.id });\n  } else {\n    res.status(401).json({ error: 'Invalid' });\n  }\n});\n\napp.listen(3000);\n```",
+      "expectedBehavior": "Should identify security, scalability, and code quality issues",
+      "expectedPatterns": ["password.*hash|bcrypt|argon", "validation|sanitize", "database|persist", "jwt|token"],
+      "tags": ["code-review", "security", "best-practices"]
+    }
+  ]
+}
