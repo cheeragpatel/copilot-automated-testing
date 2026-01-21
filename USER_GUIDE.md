@@ -21,28 +21,28 @@ This guide provides comprehensive documentation for using the Copilot Automated 
 ### Installation
 
 ```bash
-# Clone the repository
+# Install globally (recommended)
+npm install -g @copilot/model-testing
+
+# Or install locally for development
 git clone <repository-url>
 cd copilot-automated-testing
-
-# Install dependencies
 npm install
-
-# Build the project
 npm run build
+npm link  # Makes 'copilot-test' available globally
 ```
 
 ### Quick Start
 
 ```bash
 # List available models
-npm run start -- models
+copilot-test models
 
 # Run a test suite
-npm run start -- run test-suites/clone-testing.json
+copilot-test run test-suites/clone-testing.json
 
 # Generate an HTML report
-npm run start -- run test-suites/clone-testing.json -f html -r -o reports/my-report
+copilot-test run test-suites/clone-testing.json -f html -r -o reports/my-report
 ```
 
 ## Understanding Test Suites
@@ -162,13 +162,13 @@ Available test types for the `testType` field:
 
 ```bash
 # Run with default models from config
-npm run start -- run test-suites/my-suite.json
+copilot-test run test-suites/my-suite.json
 
 # Run with specific models
-npm run start -- run test-suites/my-suite.json -m gpt-4.1,claude-sonnet-4.5
+copilot-test run test-suites/my-suite.json -m gpt-4.1,claude-sonnet-4.5
 
 # Run with custom timeout
-npm run start -- run test-suites/my-suite.json --timeout 180000
+copilot-test run test-suites/my-suite.json --timeout 180000
 ```
 
 ### Command-Line Options
@@ -189,30 +189,30 @@ npm run start -- run test-suites/my-suite.json --timeout 180000
 
 ```bash
 # Interactive model selection
-npm run start -- run test-suites/my-suite.json -i
+copilot-test run test-suites/my-suite.json -i
 
 # Test all available models
-npm run start -- run test-suites/my-suite.json -a
+copilot-test run test-suites/my-suite.json -a
 
 # Generate detailed HTML report with responses
-npm run start -- run test-suites/my-suite.json -f html -r -o reports/detailed-report
+copilot-test run test-suites/my-suite.json -f html -r -o reports/detailed-report
 
 # Run with high timeout and retries
-npm run start -- run test-suites/my-suite.json --timeout 300000 --retries 3
+copilot-test run test-suites/my-suite.json --timeout 300000 --retries 3
 ```
 
 ## Model Selection
 
 ### Listing Available Models
 
-Models are always fetched live from the GitHub Copilot API:
+Models are always fetched live from the GitHub Copilot API (only enabled models are shown):
 
 ```bash
 # List available models (fetched from API)
-npm run start -- models
+copilot-test models
 
 # Output as JSON
-npm run start -- models --json
+copilot-test models --json
 ```
 
 ### Specifying Models
@@ -227,13 +227,13 @@ npm run start -- models --json
 **Via command line:**
 ```bash
 # Override config models
-npm run start -- run suite.json -m gpt-5.2,claude-sonnet-4.5
+copilot-test run suite.json -m gpt-5.2,claude-sonnet-4.5
 
 # Interactive selection
-npm run start -- run suite.json -i
+copilot-test run suite.json -i
 
 # All available models
-npm run start -- run suite.json -a
+copilot-test run suite.json -a
 ```
 
 ## Repository Testing
@@ -261,7 +261,7 @@ Clone a repository temporarily for testing:
 
 **Command line override:**
 ```bash
-npm run start -- run suite.json --clone https://github.com/user/repo --branch develop
+copilot-test run suite.json --clone https://github.com/user/repo --branch develop
 ```
 
 ### Repository Context
@@ -333,7 +333,7 @@ When `applyChanges` is true, the framework will:
 
 **Via command line:**
 ```bash
-npm run start -- run suite.json -m model1,model2,model3 --parallel
+copilot-test run suite.json -m model1,model2,model3 --parallel
 ```
 
 ### Performance Comparison
@@ -362,7 +362,7 @@ Recommended for:
 ### Markdown (default)
 
 ```bash
-npm run start -- run suite.json -f markdown -o reports/report.md
+copilot-test run suite.json -f markdown -o reports/report.md
 ```
 
 Clean, readable format with:
@@ -374,7 +374,7 @@ Clean, readable format with:
 ### HTML
 
 ```bash
-npm run start -- run suite.json -f html -r -o reports/report.html
+copilot-test run suite.json -f html -r -o reports/report.html
 ```
 
 Interactive report with:
@@ -387,7 +387,7 @@ Interactive report with:
 ### JSON
 
 ```bash
-npm run start -- run suite.json -f json -o reports/report.json
+copilot-test run suite.json -f json -o reports/report.json
 ```
 
 Machine-readable format for:
@@ -399,7 +399,7 @@ Machine-readable format for:
 ### CSV
 
 ```bash
-npm run start -- run suite.json -f csv -o reports/report.csv
+copilot-test run suite.json -f csv -o reports/report.csv
 ```
 
 Tabular format for:
@@ -543,7 +543,7 @@ Override default system message per test:
 **"Unknown models will be attempted"**
 - This is a warning, not an error
 - Models will still be tested
-- Use `npm run start -- models --api` to see available models
+- Use `copilot-test models` to see available models
 
 ### Debug Mode
 
@@ -562,7 +562,7 @@ Keep temporary directories for inspection:
 Validate your config before running:
 
 ```bash
-npm run start -- validate test-suites/my-suite.json
+copilot-test validate test-suites/my-suite.json
 ```
 
 ### Performance Issues
@@ -587,29 +587,29 @@ If running out of memory:
 
 ```bash
 # Comprehensive test with all models
-npm run start -- models --api
-npm run start -- run test-suites/model-risk-assessment.json -a --parallel -f html -r -o reports/risk-assessment
+copilot-test models
+copilot-test run test-suites/model-risk-assessment.json -a --parallel -f html -r -o reports/risk-assessment
 ```
 
 ### Development Testing
 
 ```bash
 # Quick test on current repo
-npm run start -- run test-suites/development-testing.json --repo . -m gpt-4.1
+copilot-test run test-suites/development-testing.json --repo . -m gpt-4.1
 ```
 
 ### Continuous Integration
 
 ```bash
 # CI-friendly command
-npm run start -- run test-suites/ci-suite.json -m claude-sonnet-4.5 -f json -o reports/ci-results.json --timeout 300000
+copilot-test run test-suites/ci-suite.json -m claude-sonnet-4.5 -f json -o reports/ci-results.json --timeout 300000
 ```
 
 ### Quick Comparison
 
 ```bash
 # Compare two models
-npm run start -- run test-suites/quick-clone-test.json -m gpt-5.2,claude-sonnet-4.5 --parallel -f html -o reports/comparison
+copilot-test run test-suites/quick-clone-test.json -m gpt-5.2,claude-sonnet-4.5 --parallel -f html -o reports/comparison
 ```
 
 ## Additional Resources

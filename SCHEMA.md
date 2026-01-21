@@ -645,7 +645,7 @@ Global execution options for the test suite.
 Validate your configuration file:
 
 ```bash
-npm run start -- validate test-suites/my-suite.json
+copilot-test validate test-suites/my-suite.json
 ```
 
 The validator checks:
