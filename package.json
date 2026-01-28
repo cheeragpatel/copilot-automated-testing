@@ -12,6 +12,10 @@
     "build": "tsc",
     "start": "node dist/cli.js",
     "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
     "test:run": "node dist/cli.js run",
     "test:validate": "node dist/cli.js validate",
     "init": "node dist/cli.js init"
@@ -35,5 +39,10 @@
     "marked": "^17.0.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "express": "^5.2.1",
+    "vitest": "^4.0.18"
   }
 }

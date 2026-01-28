@@ -47,6 +47,7 @@ export class ModelTestingService {
   private repoContext: RepositoryContextService | null = null;
   private repoFiles: Map<string, CodeContext> = new Map();
   private repoManager: RepositoryManager | null = null;
+  private workingDirectory: string | null = null;
 
   constructor(options: Partial<TestOptions> = {}) {
     this.options = { ...DEFAULT_OPTIONS, ...options };
@@ -55,13 +56,26 @@ export class ModelTestingService {
 
   /**
    * Initialize the Copilot client
+   * @param cwd - Optional working directory for Copilot to operate in (defaults to process.cwd())
    */
-  async initialize(): Promise<void> {
+  async initialize(cwd?: string): Promise<void> {
+    // Stop existing client if reinitializing
+    if (this.client) {
+      await this.client.stop();
+      this.client = null;
+    }
+
+    this.workingDirectory = cwd || null;
     console.log(`📍 Using Copilot CLI: ${this.cliPath}`);
+    if (cwd) {
+      console.log(`📂 Copilot working directory: ${cwd}`);
+    }
+    
     this.client = new CopilotClient({
       logLevel: "error",
       cliPath: "node",
       cliArgs: [this.cliPath],
+      cwd: cwd, // Set working directory for file operations
     });
     await this.client.start();
     console.log("✅ Copilot client initialized");
@@ -74,6 +88,10 @@ export class ModelTestingService {
     if (config.repoClone) {
       this.repoManager = new RepositoryManager(config.repoClone);
       const repoPath = await this.repoManager.cloneRepository();
+
+      // Reinitialize client with cloned repo as working directory
+      // This ensures Copilot's file operations happen in the cloned repo, not the current workspace
+      await this.initialize(repoPath);
 
       // Also set up repository context from the cloned repo
       config.repositoryContext = {
@@ -518,6 +536,9 @@ export class ModelTestingService {
         const repoPath = await this.repoManager.cloneRepository();
         if (repoPath) {
           console.log(`   ✅ Re-cloned to: ${repoPath}`);
+          
+          // Reinitialize client with new repo path as working directory
+          await this.initialize(repoPath);
           
           // Reload repository context for the new clone
           config.repositoryContext = {

@@ -116,8 +116,8 @@ export class RepositoryContextService {
       const fullPath = join(dirPath, entry.name);
       const relativePath = relative(this.repoPath, fullPath);
 
-      // Check exclusions
-      if (this.shouldExclude(relativePath, entry.name)) {
+      // Check exclusions - pass isDirectory flag to allow directory traversal
+      if (this.shouldExclude(relativePath, entry.name, entry.isDirectory())) {
         continue;
       }
 
@@ -130,9 +130,9 @@ export class RepositoryContextService {
   }
 
   /**
-   * Check if a path should be excluded
+   * Check if a path should be excluded (for directories, only checks exclude patterns)
    */
-  private shouldExclude(relativePath: string, name: string): boolean {
+  private shouldExclude(relativePath: string, name: string, isDirectory: boolean = false): boolean {
     const excludePatterns = this.config.excludeFiles || DEFAULT_EXCLUDES;
 
     for (const pattern of excludePatterns) {
@@ -151,8 +151,9 @@ export class RepositoryContextService {
       }
     }
 
-    // Check include patterns if specified
-    if (this.config.includeFiles && this.config.includeFiles.length > 0) {
+    // Check include patterns only for files, not directories
+    // Directories should be traversed to find matching files inside them
+    if (!isDirectory && this.config.includeFiles && this.config.includeFiles.length > 0) {
       const ext = extname(name);
       const matchesInclude = this.config.includeFiles.some((pattern) => {
         if (pattern.startsWith("*.")) {

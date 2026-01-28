@@ -129,7 +129,7 @@ program
   .command("run")
   .description("Run a test suite from a configuration file")
   .argument("<config>", "Path to test suite configuration file (JSON)")
-  .option("-o, --output <path>", "Output file path", "./report")
+  .option("-o, --output <path>", "Output file path", "./reports/report")
   .option(
     "-f, --format <format>",
     "Output format (markdown, html, json, csv)",
