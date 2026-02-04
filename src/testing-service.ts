@@ -252,40 +252,23 @@ export class ModelTestingService {
 
       sessionId = session.sessionId;
 
-      // Collect response events
-      const responsePromise = new Promise<{ content: string; reasoning: string }>(
-        (resolve, reject) => {
-          let content = "";
-          let reasoningContent = "";
-          const timeout = setTimeout(() => {
-            reject(new Error(`Test timed out after ${this.options.timeoutMs}ms`));
-          }, this.options.timeoutMs);
+      // Capture reasoning during streaming if enabled
+      let reasoningContent = "";
+      if (this.options.streaming) {
+        session.on((event) => {
+          if (event.type === "assistant.reasoning") {
+            reasoningContent = (event.data as { content: string }).content;
+          } else if (event.type === "assistant.message_delta") {
+            // Streaming delta events are captured here
+            // The final content is assembled by sendAndWait
+          }
+        });
+      }
 
-          session!.on((event) => {
-            if (event.type === "assistant.message") {
-              content = (event.data as { content: string }).content;
-            } else if (event.type === "assistant.reasoning") {
-              reasoningContent = (event.data as { content: string }).content;
-            } else if (event.type === "assistant.message_delta" && this.options.streaming) {
-              content += (event.data as { deltaContent: string }).deltaContent;
-            } else if (event.type === "session.idle") {
-              clearTimeout(timeout);
-              resolve({ content, reasoning: reasoningContent });
-            } else if (event.type === "session.error") {
-              clearTimeout(timeout);
-              reject(new Error((event.data as { message: string }).message));
-            }
-          });
-        }
-      );
-
-      // Send the test prompt
-      await session.send({ prompt: fullPrompt });
-
-      // Wait for response
-      const result = await responsePromise;
-      response = result.content;
-      reasoning = result.reasoning;
+      // Use sendAndWait for streaming - it handles the async iteration internally
+      const result = await session.sendAndWait({ prompt: fullPrompt }, this.options.timeoutMs);
+      response = result?.data?.content || "";
+      reasoning = reasoningContent;
 
       // Validate response patterns
       if (testCase.expectedPatterns || testCase.forbiddenPatterns) {
