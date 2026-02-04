@@ -16,9 +16,9 @@
     "languages": ["typescript", "javascript"]
   },
   "options": {
-    "timeoutMs": 300000,
-    "retries": 2,
-    "delayBetweenTestsMs": 3000
+    "timeoutMs": 120000,
+    "retries": 1,
+    "delayBetweenTestsMs": 1000
   },
   "testCases": [
     {
@@ -38,7 +38,7 @@
       "name": "Create Cart page component",
       "category": "Code Generation",
       "testType": "code-generation",
-      "prompt": "Examining the existing page components in frontend/src/pages/ (like Products.tsx, Home.tsx), create a Cart page at `frontend/src/pages/Cart.tsx` that:\n1. Displays all cart items with product image, name, price, and quantity controls\n2. Shows increment/decrement buttons for each item's quantity\n3. Includes a remove button for each item\n4. Displays cart subtotal and item count\n5. Shows an 'Empty Cart' message when no items\n6. Has a 'Continue Shopping' button linking back to products\n7. Uses Tailwind CSS matching existing page styling\n8. Supports dark/light mode using useTheme()\n\nProvide the complete React TypeScript component.",
+      "prompt": "Examining the existing page components in frontend/src/pages/ (like Products.tsx, Home.tsx), create a Cart page at `frontend/src/pages/Cart.tsx` that:\n1. Import and use the useCart hook from '../context/CartContext' to get cart items\n2. Import and use the useTheme hook for theme support\n3. Displays all cart items with product image, name, price, and quantity controls\n4. Shows increment/decrement buttons that call updateQuantity from useCart\n5. Includes a remove button that calls removeFromCart from useCart\n6. Displays cart subtotal using getCartTotal and item count\n7. Shows an 'Empty Cart' message when cart items array is empty\n8. Has a 'Continue Shopping' button linking back to products\n9. Uses Tailwind CSS matching existing page styling\n\nProvide the complete React TypeScript component.",
       "expectedBehavior": "Should generate a Cart page with full cart functionality",
       "applyChanges": true,
       "targetFile": "frontend/src/pages/Cart.tsx",
@@ -62,7 +62,7 @@
       "name": "Add cart route to App router",
       "category": "Code Generation",
       "testType": "code-generation",
-      "prompt": "Looking at frontend/src/App.tsx which contains the React Router configuration, update it to:\n1. Import the new Cart page component\n2. Add a route for /cart that renders the Cart page\n3. Wrap the app with CartProvider (from CartContext) so cart state is available everywhere\n4. Ensure CartProvider is inside ThemeProvider but wraps all routes\n\nProvide the complete updated App.tsx file.",
+      "prompt": "Looking at frontend/src/App.tsx which contains the React Router configuration, update it to:\n1. Import the Cart component from './pages/Cart'\n2. Import the CartProvider from './context/CartContext'\n3. Add a Route element with path=\"/cart\" element={<Cart />}\n4. Wrap the Routes component with CartProvider (from CartContext) so cart state is available everywhere\n5. Ensure CartProvider is inside ThemeProvider but wraps all routes\n\nProvide the complete updated App.tsx file.",
       "expectedBehavior": "Should add cart routing and CartProvider to the app",
       "applyChanges": true,
       "targetFile": "frontend/src/App.tsx",
@@ -74,7 +74,7 @@
       "name": "Add 'Add to Cart' button to product display",
       "category": "Code Generation",
       "testType": "code-generation",
-      "prompt": "Looking at how products are displayed in frontend/src/pages/Products.tsx, update the product cards to include:\n1. A quantity selector (number input or +/- buttons) defaulting to 1\n2. An 'Add to Cart' button that calls addToCart from useCart\n3. Visual feedback when item is added (brief color change or message)\n4. Disable the add button if quantity is 0\n5. Style consistently with existing product card design\n\nProvide the complete updated Products.tsx file.",
+      "prompt": "Looking at how products are displayed in frontend/src/pages/Products.tsx, update the product cards to include:\n1. Import useCart from '../context/CartContext'\n2. Add a local state for quantity using useState, defaulting to 1\n3. Add a quantity selector with +/- buttons to adjust the quantity value\n4. Add an 'Add to Cart' button that calls addToCart from useCart with the product data\n5. Include visual feedback when item is added (brief success message or toast)\n6. Disable the 'Add to Cart' button if quantity is 0 or less\n7. Style consistently with existing product card design\n\nProvide the complete updated Products.tsx file.",
       "expectedBehavior": "Should add Add to Cart functionality to product cards",
       "applyChanges": true,
       "targetFile": "frontend/src/pages/Products.tsx",
