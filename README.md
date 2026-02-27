@@ -1,5 +1,7 @@
 # Copilot Model Testing CLI
 
+# THIS IS A PROOF OF CONCEPT! - Verify Results for Accuracy
+
 A TypeScript-based CLI framework for testing GitHub Copilot models for **model risk management** and evaluation. It runs configurable JSON test suites, optionally clones target repositories, applies generated changes, validates responses, and produces comprehensive reports.
 
 ## ✨ Key Features
