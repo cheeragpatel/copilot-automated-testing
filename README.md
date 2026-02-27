@@ -177,14 +177,23 @@ See [SCHEMA.md](SCHEMA.md) for complete configuration reference and [USER_GUIDE.
 
 - `models [--json]` — List available models (fetched from Copilot API)
 - `run <config> [options]` — Execute a test suite
-  - `-m, --models <models>` — Comma-separated list of models
-  - `--parallel` — Run models in parallel
+  - `-o, --output <path>` — Output file path (default: `./report`)
   - `-f, --format <format>` — Output format (markdown, html, json, csv)
   - `-r, --responses` — Include full responses in report
-  - `--timeout <ms>` — Timeout per test
-  - `--retries <n>` — Number of retries on failure
+  - `-t, --timestamps` — Include timestamps in report
+  - `--risk-analysis` — Include risk analysis in report
+  - `--timeout <ms>` — Timeout per test (default: 60000)
+  - `--retries <n>` — Number of retries on failure (default: 1)
+  - `--delay <ms>` — Delay between tests in milliseconds (default: 500)
+  - `-m, --models <models>` — Comma-separated list of models
   - `-i, --interactive` — Interactive model selection
   - `-a, --all-models` — Test all available models
+  - `--parallel` — Run models in parallel
+  - `--repo <path>` — Path to repository for code context
+  - `--languages <langs>` — Comma-separated language filter for repo context
+  - `--clone <url>` — Clone repository from URL for testing
+  - `--branch <branch>` — Branch to checkout when cloning
+  - `--keep-temp` — Keep temporary directory after tests (for debugging)
 - `validate <config>` — Validate a config file
 - `init [-o <path>]` — Generate a sample config
 - `completion [shell]` — Generate shell completion (bash, zsh, fish)

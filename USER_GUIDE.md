@@ -175,15 +175,23 @@ copilot-test run test-suites/my-suite.json --timeout 180000
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `-m, --models <models>` | Comma-separated model list | Config file |
-| `--parallel` | Run models in parallel | `false` |
+| `-o, --output <path>` | Output file path | `./report` |
 | `-f, --format <format>` | Report format (markdown/html/json/csv) | `markdown` |
 | `-r, --responses` | Include full responses in report | `false` |
+| `-t, --timestamps` | Include timestamps in report | `false` |
+| `--risk-analysis` | Include risk analysis in report | `false` |
 | `--timeout <ms>` | Timeout per test | `60000` |
 | `--retries <n>` | Retry attempts on failure | `1` |
 | `--delay <ms>` | Delay between tests | `500` |
+| `-m, --models <models>` | Comma-separated model list | Config file |
 | `-i, --interactive` | Interactive model selection | `false` |
 | `-a, --all-models` | Test all available models | `false` |
+| `--parallel` | Run models in parallel | `false` |
+| `--repo <path>` | Path to repository for code context | - |
+| `--languages <langs>` | Comma-separated language filter for repo context | - |
+| `--clone <url>` | Clone repository from URL for testing | - |
+| `--branch <branch>` | Branch to checkout when cloning | - |
+| `--keep-temp` | Keep temporary directory after tests | `false` |
 
 ### Examples
 
