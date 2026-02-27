@@ -138,9 +138,9 @@ program
   .option("-r, --responses", "Include full responses in report", false)
   .option("-t, --timestamps", "Include timestamps in report", false)
   .option("--risk-analysis", "Include risk analysis in report", false)
-  .option("--timeout <ms>", "Timeout per test in milliseconds", "60000")
-  .option("--retries <n>", "Number of retries on failure", "1")
-  .option("--delay <ms>", "Delay between tests in milliseconds", "500")
+  .option("--timeout <ms>", "Timeout per test in milliseconds (overrides config)")
+  .option("--retries <n>", "Number of retries on failure")
+  .option("--delay <ms>", "Delay between tests in milliseconds")
   .option("-m, --models <models>", "Comma-separated list of models to test (overrides config)")
   .option("-i, --interactive", "Interactively select models to test", false)
   .option("-a, --all-models", "Test all available models", false)
@@ -232,13 +232,13 @@ program
         console.log(`📦 Will clone repository: ${options.clone}${options.branch ? ` (branch: ${options.branch})` : ""}`);
       }
 
-      // Override options from CLI
+      // Override options from CLI (only if explicitly passed)
       config.options = {
         ...config.options,
-        timeoutMs: parseInt(options.timeout),
-        retries: parseInt(options.retries),
-        delayBetweenTestsMs: parseInt(options.delay),
-        parallelModels: options.parallel || false,
+        ...(options.timeout && { timeoutMs: parseInt(options.timeout) }),
+        ...(options.retries && { retries: parseInt(options.retries) }),
+        ...(options.delay && { delayBetweenTestsMs: parseInt(options.delay) }),
+        parallelModels: options.parallel || config.options?.parallelModels || false,
       };
 
       // Initialize testing service

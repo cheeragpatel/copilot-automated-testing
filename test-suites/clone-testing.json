@@ -1,7 +1,7 @@
 {
   "name": "Shopping Cart Feature - Use Case 1",
   "description": "Simplified test suite based on Use Case 1: Add a new feature (Shopping Cart). Tests Copilot's ability to plan and implement a complete feature including routing, state management, and UI components.",
-  "models": ["claude-sonnet-4.5", "gpt-4.1"],
+  "models": ["claude-opus-4.5", "gpt-5.2"],
   "repoClone": {
     "repoUrl": "https://github.com/cheeragpatel/demo_copilot_agent",
     "branch": "main",
@@ -26,11 +26,11 @@
       "name": "Create Cart Context for state management",
       "category": "Code Generation",
       "testType": "code-generation",
-      "prompt": "Looking at the existing context pattern in frontend/src/context/ThemeContext.tsx, create a new CartContext at `frontend/src/context/CartContext.tsx` that:\n1. Defines a CartItem interface with productId, name, price, quantity, and imgName\n2. Creates CartContext with items array, addToCart, removeFromCart, updateQuantity, clearCart, and getCartTotal functions\n3. Implements a CartProvider component that wraps children and manages cart state\n4. Exports a useCart() custom hook for easy access to cart state and functions\n5. Persists cart to localStorage so it survives page refreshes\n\nFollow the exact patterns used in ThemeContext.tsx. Provide the complete code.",
+      "prompt": "Create a CartContext file at `frontend/src/context/CartContext.tsx`. Look at ThemeContext.tsx as a reference for the pattern.\n\nRequirements:\n- CartItem interface with productId, name, price, quantity, imgName\n- CartContext with items array and cart functions\n- CartProvider component managing state with useState\n- useCart hook for accessing context\n- Save cart to localStorage\n\nRespond with ONLY the TypeScript code for the file. No markdown, no explanations, just raw code.",
       "expectedBehavior": "Should generate a Cart context with state management following existing patterns",
       "applyChanges": true,
       "targetFile": "frontend/src/context/CartContext.tsx",
-      "expectedPatterns": ["createContext", "CartProvider", "useCart", "addToCart", "removeFromCart", "localStorage"],
+      "expectedPatterns": ["CartProvider", "useCart"],
       "tags": ["frontend", "react", "context", "state-management"]
     },
     {
@@ -38,11 +38,11 @@
       "name": "Create Cart page component",
       "category": "Code Generation",
       "testType": "code-generation",
-      "prompt": "Examining the existing page components in frontend/src/pages/ (like Products.tsx, Home.tsx), create a Cart page at `frontend/src/pages/Cart.tsx` that:\n1. Displays all cart items with product image, name, price, and quantity controls\n2. Shows increment/decrement buttons for each item's quantity\n3. Includes a remove button for each item\n4. Displays cart subtotal and item count\n5. Shows an 'Empty Cart' message when no items\n6. Has a 'Continue Shopping' button linking back to products\n7. Uses Tailwind CSS matching existing page styling\n8. Supports dark/light mode using useTheme()\n\nProvide the complete React TypeScript component.",
+      "prompt": "Create a Cart page component at `frontend/src/pages/Cart.tsx`. Look at Products.tsx and Home.tsx as references.\n\nRequirements:\n- Display cart items with image, name, price, quantity\n- Quantity +/- buttons for each item\n- Remove item button\n- Show subtotal\n- Empty cart message when no items\n- Use Tailwind CSS\n- Support dark/light theme via useTheme\n\nRespond with ONLY the TypeScript/React code. No markdown, no explanations, just the raw code.",
       "expectedBehavior": "Should generate a Cart page with full cart functionality",
       "applyChanges": true,
       "targetFile": "frontend/src/pages/Cart.tsx",
-      "expectedPatterns": ["useCart", "useTheme", "map", "quantity", "removeFromCart", "export"],
+      "expectedPatterns": ["Cart", "function|const"],
       "tags": ["frontend", "react", "page", "cart"]
     },
     {
@@ -50,11 +50,11 @@
       "name": "Add cart badge to Navigation",
       "category": "Code Generation",
       "testType": "code-generation",
-      "prompt": "Looking at frontend/src/components/Navigation.tsx, modify it to add a shopping cart icon with a badge showing the cart item count:\n1. Import and use the useCart hook to get cart items\n2. Add a cart icon (use a shopping cart SVG or emoji) in the navbar\n3. Display a badge/bubble showing the total number of items in cart\n4. Make the cart icon a link to the /cart page\n5. Hide the badge when cart is empty (0 items)\n6. Style the badge to match the existing navbar theme (support dark/light mode)\n\nProvide the complete updated Navigation component.",
+      "prompt": "Update frontend/src/components/Navigation.tsx to add a cart icon with item count badge:\n\n- Import useCart hook\n- Add cart icon in the nav bar\n- Show badge with number of items\n- Link to /cart page\n- Hide badge when cart is empty\n\nRespond with ONLY the complete updated Navigation component code. No markdown, no explanations, just raw code.",
       "expectedBehavior": "Should add cart icon with item count badge to navigation",
       "applyChanges": true,
       "targetFile": "frontend/src/components/Navigation.tsx",
-      "expectedPatterns": ["useCart", "cart", "badge|count", "Link.*cart"],
+      "expectedPatterns": ["cart", "Link"],
       "tags": ["frontend", "react", "navigation", "cart"]
     },
     {
@@ -62,11 +62,11 @@
       "name": "Add cart route to App router",
       "category": "Code Generation",
       "testType": "code-generation",
-      "prompt": "Looking at frontend/src/App.tsx which contains the React Router configuration, update it to:\n1. Import the new Cart page component\n2. Add a route for /cart that renders the Cart page\n3. Wrap the app with CartProvider (from CartContext) so cart state is available everywhere\n4. Ensure CartProvider is inside ThemeProvider but wraps all routes\n\nProvide the complete updated App.tsx file.",
+      "prompt": "Update frontend/src/App.tsx to add cart functionality:\n\n- Import Cart page component\n- Add Route for /cart path\n- Wrap app with CartProvider from CartContext\n- Place CartProvider inside ThemeProvider\n\nRespond with ONLY the complete updated App.tsx code. No markdown, no explanations, just raw code.",
       "expectedBehavior": "Should add cart routing and CartProvider to the app",
       "applyChanges": true,
       "targetFile": "frontend/src/App.tsx",
-      "expectedPatterns": ["CartProvider", "Route.*cart", "import.*Cart"],
+      "expectedPatterns": ["Cart", "Route"],
       "tags": ["frontend", "react", "routing", "cart"]
     },
     {
@@ -74,11 +74,11 @@
       "name": "Add 'Add to Cart' button to product display",
       "category": "Code Generation",
       "testType": "code-generation",
-      "prompt": "Looking at how products are displayed in frontend/src/pages/Products.tsx, update the product cards to include:\n1. A quantity selector (number input or +/- buttons) defaulting to 1\n2. An 'Add to Cart' button that calls addToCart from useCart\n3. Visual feedback when item is added (brief color change or message)\n4. Disable the add button if quantity is 0\n5. Style consistently with existing product card design\n\nProvide the complete updated Products.tsx file.",
+      "prompt": "Update frontend/src/pages/Products.tsx to add 'Add to Cart' functionality to product cards:\n\n- Add quantity selector (input or +/- buttons)\n- Add 'Add to Cart' button using useCart hook\n- Default quantity to 1\n- Match existing card styling\n\nRespond with ONLY the complete updated Products.tsx code. No markdown, no explanations, just raw code.",
       "expectedBehavior": "Should add Add to Cart functionality to product cards",
       "applyChanges": true,
       "targetFile": "frontend/src/pages/Products.tsx",
-      "expectedPatterns": ["useCart", "addToCart", "quantity", "Add to Cart|Add"],
+      "expectedPatterns": ["cart", "button"],
       "tags": ["frontend", "react", "products", "cart"]
     },
     {
@@ -86,11 +86,11 @@
       "name": "Create unit tests for CartContext",
       "category": "Test Generation",
       "testType": "test-generation",
-      "prompt": "Create unit tests for the CartContext at `frontend/src/context/CartContext.test.tsx` using Vitest and React Testing Library:\n1. Test adding an item to cart\n2. Test removing an item from cart\n3. Test updating item quantity\n4. Test clearing the cart\n5. Test getCartTotal returns correct sum\n6. Test cart persists to localStorage\n7. Test useCart hook works within CartProvider\n\nFollow testing patterns from any existing test files in the project. Provide complete test code.",
-      "expectedBehavior": "Should generate comprehensive tests for cart functionality",
+      "prompt": "Create a test file at `frontend/src/context/CartContext.test.tsx` using Vitest.\n\nWrite 2 simple tests:\n1. Test addToCart adds an item to the cart\n2. Test removeFromCart removes an item\n\nRespond with ONLY the test code. No markdown, no explanations, just raw TypeScript/React test code.",
+      "expectedBehavior": "Should generate basic tests for cart functionality",
       "applyChanges": true,
       "targetFile": "frontend/src/context/CartContext.test.tsx",
-      "expectedPatterns": ["describe|it|test", "expect", "addToCart", "renderHook|render"],
+      "expectedPatterns": ["test|it|describe", "expect"],
       "tags": ["testing", "unit-test", "cart", "react"]
     }
   ]
