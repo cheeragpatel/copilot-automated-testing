@@ -1,7 +1,7 @@
 {
-  "name": "Repository Clone Testing Suite",
-  "description": "Test suite that clones a repository, applies Copilot-generated code changes, and captures diffs",
-  "models": ["claude-sonnet-4.5"],
+  "name": "Shopping Cart Feature - Use Case 1",
+  "description": "Simplified test suite based on Use Case 1: Add a new feature (Shopping Cart). Tests Copilot's ability to plan and implement a complete feature including routing, state management, and UI components.",
+  "models": ["claude-opus-4.5", "gpt-5.2"],
   "repoClone": {
     "repoUrl": "https://github.com/cheeragpatel/demo_copilot_agent",
     "branch": "main",
@@ -9,113 +9,89 @@
     "keepTempDir": false
   },
   "repositoryContext": {
-    "includeFiles": ["*.js", "*.ts", "*.json", "*.md"],
-    "excludeFiles": ["node_modules", "dist", ".git"],
-    "maxFiles": 20,
-    "maxFileSizeBytes": 30000,
-    "languages": ["javascript", "typescript"]
+    "includeFiles": ["*.ts", "*.tsx", "*.js", "*.json", "*.md", "*.css"],
+    "excludeFiles": ["node_modules", "dist", ".git", "coverage"],
+    "maxFiles": 50,
+    "maxFileSizeBytes": 50000,
+    "languages": ["typescript", "javascript"]
   },
   "options": {
-    "timeoutMs": 120000,
-    "retries": 1,
-    "delayBetweenTestsMs": 2000
+    "timeoutMs": 300000,
+    "retries": 2,
+    "delayBetweenTestsMs": 3000
   },
   "testCases": [
     {
-      "id": "clone-gen-001",
-      "name": "Create string utility functions",
+      "id": "cart-context-001",
+      "name": "Create Cart Context for state management",
       "category": "Code Generation",
       "testType": "code-generation",
-      "prompt": "Create a JavaScript utility file at `src/utils/stringUtils.js` that exports functions for:\n1. `capitalize(str)` - capitalizes first letter\n2. `slugify(str)` - converts string to URL-friendly slug\n3. `truncate(str, maxLength)` - truncates with ellipsis\n\nInclude JSDoc comments. Provide the complete code in a code block.",
-      "expectedBehavior": "Should generate a complete utility file with proper exports",
+      "prompt": "Create a CartContext file at `frontend/src/context/CartContext.tsx`. Look at ThemeContext.tsx as a reference for the pattern.\n\nRequirements:\n- CartItem interface with productId, name, price, quantity, imgName\n- CartContext with items array and cart functions\n- CartProvider component managing state with useState\n- useCart hook for accessing context\n- Save cart to localStorage\n\nRespond with ONLY the TypeScript code for the file. No markdown, no explanations, just raw code.",
+      "expectedBehavior": "Should generate a Cart context with state management following existing patterns",
       "applyChanges": true,
-      "targetFile": "src/utils/stringUtils.js",
-      "expectedPatterns": ["function|const|=>", "capitalize", "truncate"],
-      "tags": ["utility", "strings"]
+      "targetFile": "frontend/src/context/CartContext.tsx",
+      "expectedPatterns": ["CartProvider", "useCart"],
+      "tags": ["frontend", "react", "context", "state-management"]
     },
     {
-      "id": "clone-gen-002",
-      "name": "Create array helper utilities",
+      "id": "cart-page-001",
+      "name": "Create Cart page component",
       "category": "Code Generation",
       "testType": "code-generation",
-      "prompt": "Create a JavaScript utility file at `src/utils/arrayUtils.js` with these functions:\n1. `unique(arr)` - returns array with duplicates removed\n2. `chunk(arr, size)` - splits array into chunks of specified size\n3. `shuffle(arr)` - randomly shuffles array elements\n4. `groupBy(arr, key)` - groups array of objects by a key\n\nInclude JSDoc comments and proper exports. Provide the complete code in a code block.",
-      "expectedBehavior": "Should generate array utility functions",
+      "prompt": "Create a Cart page component at `frontend/src/pages/Cart.tsx`. Look at Products.tsx and Home.tsx as references.\n\nRequirements:\n- Display cart items with image, name, price, quantity\n- Quantity +/- buttons for each item\n- Remove item button\n- Show subtotal\n- Empty cart message when no items\n- Use Tailwind CSS\n- Support dark/light theme via useTheme\n\nRespond with ONLY the TypeScript/React code. No markdown, no explanations, just the raw code.",
+      "expectedBehavior": "Should generate a Cart page with full cart functionality",
       "applyChanges": true,
-      "targetFile": "src/utils/arrayUtils.js",
-      "expectedPatterns": ["function|const|=>", "unique|chunk|shuffle|groupBy", "return"],
-      "tags": ["utility", "arrays"]
+      "targetFile": "frontend/src/pages/Cart.tsx",
+      "expectedPatterns": ["Cart", "function|const"],
+      "tags": ["frontend", "react", "page", "cart"]
     },
     {
-      "id": "clone-gen-003",
-      "name": "Create a simple logger module",
+      "id": "cart-badge-001",
+      "name": "Add cart badge to Navigation",
       "category": "Code Generation",
       "testType": "code-generation",
-      "prompt": "Create a simple logging utility at `src/utils/logger.js` that provides:\n1. `log(message)` - logs with timestamp\n2. `warn(message)` - logs warning with yellow color code\n3. `error(message)` - logs error with red color code\n4. `debug(message)` - only logs if DEBUG env var is set\n\nUse console methods internally. Provide the complete code in a code block.",
-      "expectedBehavior": "Should generate a logging utility",
+      "prompt": "Update frontend/src/components/Navigation.tsx to add a cart icon with item count badge:\n\n- Import useCart hook\n- Add cart icon in the nav bar\n- Show badge with number of items\n- Link to /cart page\n- Hide badge when cart is empty\n\nRespond with ONLY the complete updated Navigation component code. No markdown, no explanations, just raw code.",
+      "expectedBehavior": "Should add cart icon with item count badge to navigation",
       "applyChanges": true,
-      "targetFile": "src/utils/logger.js",
-      "expectedPatterns": ["console", "log|warn|error", "function|const|=>"],
-      "tags": ["utility", "logging"]
+      "targetFile": "frontend/src/components/Navigation.tsx",
+      "expectedPatterns": ["cart", "Link"],
+      "tags": ["frontend", "react", "navigation", "cart"]
     },
     {
-      "id": "clone-fix-001",
-      "name": "Add input validation helper",
+      "id": "cart-routing-001",
+      "name": "Add cart route to App router",
       "category": "Code Generation",
       "testType": "code-generation",
-      "prompt": "Create a validation utility at `src/utils/validator.js` with these functions:\n1. `isEmail(str)` - validates email format using regex\n2. `isURL(str)` - validates URL format\n3. `isNotEmpty(str)` - checks string is not null/undefined/empty\n4. `isNumber(val)` - checks if value is a valid number\n5. `isInRange(num, min, max)` - checks if number is within range\n\nReturn boolean values. Provide the complete code in a code block.",
-      "expectedBehavior": "Should create validation functions with proper regex",
+      "prompt": "Update frontend/src/App.tsx to add cart functionality:\n\n- Import Cart page component\n- Add Route for /cart path\n- Wrap app with CartProvider from CartContext\n- Place CartProvider inside ThemeProvider\n\nRespond with ONLY the complete updated App.tsx code. No markdown, no explanations, just raw code.",
+      "expectedBehavior": "Should add cart routing and CartProvider to the app",
       "applyChanges": true,
-      "targetFile": "src/utils/validator.js",
-      "expectedPatterns": ["function|const|=>", "return", "true|false"],
-      "tags": ["validation", "utility"]
+      "targetFile": "frontend/src/App.tsx",
+      "expectedPatterns": ["Cart", "Route"],
+      "tags": ["frontend", "react", "routing", "cart"]
     },
     {
-      "id": "clone-doc-001",
-      "name": "Generate README documentation",
-      "category": "Documentation",
-      "testType": "documentation",
-      "prompt": "Create a README.md file for this project that includes:\n1. Project title and description\n2. Installation instructions (npm install)\n3. Usage examples with code snippets\n4. Available scripts/commands\n5. Contributing guidelines\n6. License section (MIT)\n\nUse proper Markdown formatting with headers, code blocks, and lists. Provide the complete content in a code block.",
-      "expectedBehavior": "Should generate comprehensive README documentation",
+      "id": "cart-button-001",
+      "name": "Add 'Add to Cart' button to product display",
+      "category": "Code Generation",
+      "testType": "code-generation",
+      "prompt": "Update frontend/src/pages/Products.tsx to add 'Add to Cart' functionality to product cards:\n\n- Add quantity selector (input or +/- buttons)\n- Add 'Add to Cart' button using useCart hook\n- Default quantity to 1\n- Match existing card styling\n\nRespond with ONLY the complete updated Products.tsx code. No markdown, no explanations, just raw code.",
+      "expectedBehavior": "Should add Add to Cart functionality to product cards",
       "applyChanges": true,
-      "targetFile": "README.md",
-      "expectedPatterns": ["#", "install|npm", "```"],
-      "tags": ["documentation", "readme"]
+      "targetFile": "frontend/src/pages/Products.tsx",
+      "expectedPatterns": ["cart", "button"],
+      "tags": ["frontend", "react", "products", "cart"]
     },
     {
-      "id": "clone-test-001",
-      "name": "Generate unit tests for utilities",
+      "id": "cart-test-001",
+      "name": "Create unit tests for CartContext",
       "category": "Test Generation",
       "testType": "test-generation",
-      "prompt": "Create a test file at `test/utils.test.js` that tests string utility functions:\n1. Test capitalize() with various inputs including empty string and null\n2. Test truncate() with strings shorter and longer than maxLength\n3. Test edge cases like special characters and unicode\n\nUse Jest or Node's built-in assert module. Provide the complete code in a code block.",
-      "expectedBehavior": "Should generate comprehensive unit tests",
+      "prompt": "Create a test file at `frontend/src/context/CartContext.test.tsx` using Vitest.\n\nWrite 2 simple tests:\n1. Test addToCart adds an item to the cart\n2. Test removeFromCart removes an item\n\nRespond with ONLY the test code. No markdown, no explanations, just raw TypeScript/React test code.",
+      "expectedBehavior": "Should generate basic tests for cart functionality",
       "applyChanges": true,
-      "targetFile": "test/utils.test.js",
-      "expectedPatterns": ["describe|test|it", "expect|assert", "function|=>"],
-      "tags": ["testing", "unit-tests"]
-    },
-    {
-      "id": "clone-config-001",
-      "name": "Create configuration module",
-      "category": "Code Generation",
-      "testType": "code-generation",
-      "prompt": "Create a configuration module at `src/config/index.js` that:\n1. Loads environment variables from process.env\n2. Provides defaults for common settings (port, host, debug mode)\n3. Exports a frozen config object to prevent mutation\n4. Includes validation to ensure required vars are present\n\nProvide the complete code in a code block.",
-      "expectedBehavior": "Should generate a proper config module",
-      "applyChanges": true,
-      "targetFile": "src/config/index.js",
-      "expectedPatterns": ["process.env|process\\.env", "export|module", "const|let"],
-      "tags": ["config", "environment"]
-    },
-    {
-      "id": "clone-api-001",
-      "name": "Create HTTP client wrapper",
-      "category": "Code Generation",
-      "testType": "code-generation",
-      "prompt": "Create an HTTP client wrapper at `src/utils/httpClient.js` that provides:\n1. `get(url, options)` - performs GET request\n2. `post(url, data, options)` - performs POST request\n3. `put(url, data, options)` - performs PUT request\n4. `delete(url, options)` - performs DELETE request\n\nUse the native fetch API. Handle errors gracefully. Return JSON responses. Provide the complete code in a code block.",
-      "expectedBehavior": "Should generate a fetch-based HTTP client",
-      "applyChanges": true,
-      "targetFile": "src/utils/httpClient.js",
-      "expectedPatterns": ["fetch|async|await", "get|post|put", "return|response"],
-      "tags": ["http", "api", "fetch"]
+      "targetFile": "frontend/src/context/CartContext.test.tsx",
+      "expectedPatterns": ["test|it|describe", "expect"],
+      "tags": ["testing", "unit-test", "cart", "react"]
     }
   ]
 }
